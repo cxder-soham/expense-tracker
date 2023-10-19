@@ -40,9 +40,6 @@ public:
                 {
                     found_record = true;
                     getline(file, field_three, ',');
-
-                    balance = field_three;
-                    cout << balance;
                     break; // Stop searching once found
                 }
                 else
@@ -159,10 +156,9 @@ public:
             monthlyLimit = limit;
         }
     }
-    void displaycount(string b)
-    {   
-        cout<< b;
-        cout << "Number of expenses"<<expcount;
+    void displaycount()
+    {
+        cout << "Number of expenses" << expcount << endl;
     }
     // this function would call the limit functions inside its body to check if expense can be added
     void AddExpense(string description, float amount, int type, string id)
@@ -205,7 +201,7 @@ public:
 };
 class Wallet : public Authenticate, public Expense_tracker // class Wallet inherits class Authenticate
 {
-    string bal = balance;
+    float bal;
     // inherited username
     map<string, float> pending_expenses; // format -> pending expense desc , amount
     map<string, float>::iterator it = pending_expenses.begin();
@@ -216,11 +212,11 @@ public:
     Wallet() {}
     Wallet(float b)
     {
-        balance = b;
+        bal = b;
     }
     void operator<<(Wallet &w) // displaying object
     {
-        cout << w.balance << endl;
+        cout << balance << endl;
         while (it != pending_expenses.end())
         {
             cout << "Key: " << it->first << ", Value: " << it->second << endl;
@@ -232,6 +228,7 @@ public:
     {
         ifstream file("expense_data.csv", ios::in);
         string temp, line, word, user, field_one;
+        cout << "field" << field_one << "," << id << endl;
 
         while (getline(file, field_one, ',') && !file.eof())
         {
@@ -246,11 +243,35 @@ public:
         }
     }
 
-    void depositMoney(int amt)
+    float get_balance()
     {
+        ifstream file("balance.csv");
+        float balance;
+        file >> balance;
+        file.close();
+        return balance;
+    }
+
+    void set_balance(float bal)
+    {
+        ofstream file;
+        file.open("balance.csv", ios::out | ios_base::trunc);
+        file << bal;
+    }
+
+    void depositMoney(float amt)
+    {
+        bal = get_balance();
+        bal += amt;
+        set_balance(bal);
+        cout << "Balance updated!\nNew Balance: " << bal << endl;
     }
     void withdrawMoney(int amt)
     {
+        bal = get_balance();
+        bal -= amt;
+        set_balance(bal);
+        cout << "Balance updated!\nNew Balance: " << bal << endl;
     }
     /*void test()
     {
@@ -266,7 +287,8 @@ public:
 };
 void viewWallet(Wallet &w)
 {
-    cout << "Wallet Balance: " << w.bal;
+    w.bal = w.get_balance();
+    cout << "Wallet Balance: " << w.bal << endl;
 }
 class Savings
 {
@@ -275,7 +297,6 @@ class Savings
 
 int main()
 {
-    Wallet w;
     double bal;
     int n;
     int choice;
@@ -325,9 +346,32 @@ int main()
             cin >> choice;
             if (choice == 1)
             {
-                cout << "Wallet" << endl; // balance, view wallet -> expense list - name, amt
+                Wallet w;
+                float amount;
 
-            e.displaycount(auth.balance);
+                cout << "Wallet" << endl; // balance, view wallet -> expense list - name, amt
+                cout << "1. View Wallet\n2. Deposit Money\n3. Withdraw Money" << endl;
+                cout << "Enter your choice: ";
+                cin >> choice;
+                if (choice == 1)
+                {
+                    // w.chkwallet();
+                    viewWallet(w);
+                    e.displaycount();
+                }
+                else if (choice == 2)
+                {
+                    cout << "Enter amount to deposit: ";
+                    cin >> amount;
+                    w.depositMoney(amount);
+                }
+                else if (choice == 3)
+                {
+                    float amount;
+                    cout << "Enter amount to withdraw: ";
+                    cin >> amount;
+                    w.withdrawMoney(amount);
+                }
             }
             else if (choice == 2)
             {
@@ -357,7 +401,7 @@ int main()
                     cout << "Expense: ";
                     cin >> expense;
 
-                    et.AddExpense(description, expense, type, w.id);
+                    et.AddExpense(description, expense, type, auth.username);
                 }
             }
             else if (choice == 3)
@@ -371,6 +415,4 @@ int main()
                 cout << "Invalid Input" << endl;
         }
     }
-
-    return 0;
 }
