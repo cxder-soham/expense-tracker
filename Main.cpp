@@ -14,9 +14,11 @@ public:
     string username;
     string pin;
     string balance;
+    double bal;
     // vector<string> userdata;
 
 public:
+    
     Authenticate() {}
     bool log_in()
     {
@@ -69,7 +71,7 @@ public:
     {
         bool b = true;
 
-        double bal;
+        
         // Write Sign up code
         while (b)
         {
@@ -124,82 +126,14 @@ public:
     }
     void createAccount(string field_one, string field_two, double field_three)
     {
+        
         ofstream file;
         file.open("userdatabase.csv", ios_base::app);
         file << field_one << ',' << field_two << ',' << field_three << endl;
+        
     }
 };
-class Expense_tracker
-{
-protected:
-    float dailyLimit;
-    float weeklyLimit;
-    float monthlyLimit;
-    map<string, float> expenses;
-    int expcount = 0;
-
-public:
-    Expense_tracker() {}
-
-    void setLimit(int type, float limit)
-    {
-        if (type == 1)
-        {
-            dailyLimit = limit;
-        }
-        else if (type == 2)
-        {
-            weeklyLimit = limit;
-        }
-        else if (type == 3)
-        {
-            monthlyLimit = limit;
-        }
-    }
-    void displaycount()
-    {
-        cout << "Number of expenses" << expcount << endl;
-    }
-    // this function would call the limit functions inside its body to check if expense can be added
-    void AddExpense(string description, float amount, int type, string id)
-    {
-        ofstream file;
-        file.open("expense_data.csv", ios::out | ios_base::app);
-        expenses[description] = amount;
-        ofstream file1;
-        file1.open("userdatabase.csv", ios::out | ios_base::app);
-
-        ifstream file2("userdatabase.csv", ios::in);
-        string field_one;
-        string field_two;
-
-        string field_three;
-        string s = description + ":" + to_string(amount);
-        // Check if adding the expense exceeds the daily, weekly, or monthly limit
-        if ((type == 1 && amount <= dailyLimit) || (type == 2 && amount <= dailyLimit) || (type == 3 && amount <= monthlyLimit))
-        {
-            file << s << ",";
-            cout << "Expense added Successfully!" << endl;
-            expcount++;
-            while (getline(file2, field_one, ',') && !file2.eof())
-            {
-                if (field_one == id)
-                {
-                    // field_three = stof(field_three) - amount);
-                    break; // Stop searching once found
-                }
-
-                getline(file2, field_three, '\n');
-            }
-        }
-        else
-        {
-            cout << "Expense exceeded the limit..\n";
-        }
-    } // this function would call the limit functions inside its body to check if expense can be added
-      // Also it would add to pending expenses in wallet
-};
-class Wallet : public Authenticate, public Expense_tracker // class Wallet inherits class Authenticate
+class Wallet : public Authenticate // class Wallet inherits class Authenticate
 {
     float bal;
     // inherited username
@@ -208,7 +142,7 @@ class Wallet : public Authenticate, public Expense_tracker // class Wallet inher
 
 public:
     string id = username;
-    int exp_cnt = expcount;
+   // int exp_cnt = expcount;
     Wallet() {}
     Wallet(float b)
     {
@@ -224,6 +158,7 @@ public:
         }
     }
     friend void viewWallet(Wallet &s);
+    
     void chkwallet()
     {
         ifstream file("expense_data.csv", ios::in);
@@ -290,6 +225,86 @@ void viewWallet(Wallet &w)
     w.bal = w.get_balance();
     cout << "Wallet Balance: " << w.bal << endl;
 }
+
+class Expense_tracker : public Wallet
+{
+protected:
+    float dailyLimit;
+    float weeklyLimit;
+    float monthlyLimit;
+    float savings = 0.0;
+    map<string, float> expenses;
+    int expcount = 0;
+    
+public:
+    Wallet w;
+    Expense_tracker() {}
+
+    void setLimit(int type, float limit)
+    {
+        if (type == 1)
+        {
+            dailyLimit = limit;
+        }
+        else if (type == 2)
+        {
+            weeklyLimit = limit;
+        }
+        else if (type == 3)
+        {
+            monthlyLimit = limit;
+        }
+    }
+    void displaycount()
+    {
+        cout << "Number of expenses" << expcount << endl;
+    }
+    // this function would call the limit functions inside its body to check if expense can be added
+    void AddExpense(string description, float amount, int type, string id)
+    {
+        ofstream file;
+        file.open("expense_data.csv", ios::out | ios_base::app);
+        expenses[description] = amount;
+        ofstream file1;
+        file1.open("userdatabase.csv", ios::out | ios_base::app);
+
+        ifstream file2("userdatabase.csv", ios::in);
+        string field_one;
+        string field_two;
+
+        string field_three;
+        string s = description + ":" + to_string(amount);
+        // Check if adding the expense exceeds the daily, weekly, or monthly limit
+        if ((type == 1 && amount <= dailyLimit) || (type == 2 && amount <= dailyLimit) || (type == 3 && amount <= monthlyLimit))
+        {
+            file << s << ",";
+            cout << "Expense added Successfully!" << endl;
+            expcount++;
+            savings = (dailyLimit - amount);
+            w.withdrawMoney(amount);
+            while (getline(file2, field_one, ',') && !file2.eof())
+            {
+                if (field_one == id)
+                {
+                    // field_three = stof(field_three) - amount);
+                    break; // Stop searching once found
+                }
+
+                getline(file2, field_three, '\n');
+            }
+        }
+        else
+        {
+            cout << "Expense exceeded the limit..\n";
+            savings -= amount;
+        }
+    } // this function would call the limit functions inside its body to check if expense can be added
+    // Also it would add to pending expenses in wallet
+    void saving()
+    {
+        cout << "Your savings today =" << savings << endl;
+    }
+};
 class Savings
 {
     float savingGoal;
@@ -306,14 +321,15 @@ int main()
     bool user_exists;
     int type;
     float limit;
-
+    Wallet v;
     bool is_logged_in;
     string name, username, pin;
     Authenticate auth;
     Expense_tracker e;
+    Expense_tracker et;
     while (1)
     {
-        cout << "*****************Welcome*****************" << endl;
+        cout << "****************Welcome****************" << endl;
         if (!is_logged_in)
         {
             cout << "1. Create New Account\n2. Login to you Account\n3. Exit\n";
@@ -324,6 +340,11 @@ int main()
             {
 
                 is_logged_in = auth.sign_up();
+                if(is_logged_in)
+                {
+                    v.depositMoney(auth.bal);
+                }
+
             }
             else if (choice == 2)
             {
@@ -340,7 +361,7 @@ int main()
             }
         }
         else
-        {
+        {   
             cout << "1. Wallet\n2. Expense Tracker\n3. Savings\n4. Log out" << endl;
             cout << "Enter your choice: ";
             cin >> choice;
@@ -380,7 +401,6 @@ int main()
 
                 cin >> choice;
 
-                Expense_tracker et;
                 if (choice == 1)
                 {
                     cout << "Choose a type of limit:\n1. Daily\n2. Weekly\n3. Monthly\n";
@@ -406,6 +426,7 @@ int main()
             }
             else if (choice == 3)
             {
+                et.saving();
             }
             else if (choice == 4)
             {
