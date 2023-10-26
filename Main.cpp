@@ -141,7 +141,7 @@ class Wallet : public Authenticate // class Wallet inherits class Authenticate
     map<string, float>::iterator it = pending_expenses.begin();
 
 public:
-    string id = username;
+   
    // int exp_cnt = expcount;
     Wallet() {}
     Wallet(float b)
@@ -157,27 +157,9 @@ public:
             ++it;
         }
     }
+    
     friend void viewWallet(Wallet &s);
     
-    void chkwallet()
-    {
-        ifstream file("expense_data.csv", ios::in);
-        string temp, line, word, user, field_one;
-        cout << "field" << field_one << "," << id << endl;
-
-        while (getline(file, field_one, ',') && !file.eof())
-        {
-            if (field_one == id)
-            {
-                getline(file, line, '\n');
-                cout << line;
-                break; // Stop searching once found
-            }
-
-            getline(file, line, '\n');
-        }
-    }
-
     float get_balance()
     {
         ifstream file("balance.csv");
@@ -208,17 +190,7 @@ public:
         set_balance(bal);
         cout << "Balance updated!\nNew Balance: " << bal << endl;
     }
-    /*void test()
-    {
-        ofstream file;
-        file.open("userdatabase.csv");
-        string line;
-        while (file)
-        {
-            getline(cin, line);
-            cout << line;
-        }
-    }*/
+   
 };
 void viewWallet(Wallet &w)
 {
@@ -257,7 +229,7 @@ public:
     }
     void displaycount()
     {
-        cout << "Number of expenses" << expcount << endl;
+        cout << "Number of expenses " << expcount << endl;
     }
     // this function would call the limit functions inside its body to check if expense can be added
     void AddExpense(string description, float amount, int type, string id)
@@ -298,17 +270,14 @@ public:
             cout << "Expense exceeded the limit..\n";
             savings -= amount;
         }
-    } // this function would call the limit functions inside its body to check if expense can be added
-    // Also it would add to pending expenses in wallet
+    } 
+ 
     void saving()
     {
         cout << "Your savings today =" << savings << endl;
     }
 };
-class Savings
-{
-    float savingGoal;
-};
+
 
 int main()
 {
